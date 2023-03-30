@@ -4,11 +4,11 @@ from github import Github, GithubIntegration
 
 app = Flask(__name__)
 
-app_id = '<your_app_number_here>'
+app_id = 311874
 
 # Read the bot certificate
 with open(
-        os.path.normpath(os.path.expanduser('bot_key.pem')),
+        os.path.normpath(os.path.expanduser('private_key.pem')),
         'r'
 ) as cert_file:
     app_key = cert_file.read()
@@ -23,10 +23,18 @@ def issue_opened_event(repo, payload):
     issue = repo.get_issue(number=payload['issue']['number'])
     author = issue.user.login
 
+    issue.add_to_labels("needs triage")
     
     response = f"Thanks for opening this issue, @{author}! " \
                 f"The repository maintainers will look into it ASAP! :speech_balloon:"
     issue.create_comment(f"{response}")
+
+def pull_request_closed_event(repo, payload):
+    pull_request = repo.get_pull(payload['pull_request']['number'])
+    author = pull_request.user.login
+
+    response = f"Thank you for your contribution to this amazing project @{author}! "
+    pull_request.create_comment(f"{response}")
 
 @app.route("/", methods=['POST'])
 def bot():
@@ -48,6 +56,10 @@ def bot():
     # Check if the event is a GitHub issue creation event
     if all(k in payload.keys() for k in ['action', 'issue']) and payload['action'] == 'opened':
         issue_opened_event(repo, payload)
+    
+    # Check if the event is a GitHub pull request closed event
+    if all(k in payload.keys() for k in ['action', 'pull_request']) and payload['action'] == 'closed':
+        pull_request_closed_event(repo, payload)
 
     return "", 204
 
