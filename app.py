@@ -40,7 +40,6 @@ def pull_request_closed_event(repo, payload):
     
 def pull_request_opened_event(repo, payload):
     pull_request = repo.get_pull(payload['pull_request']['number'])
-    branch = pull_request.head.ref
     author = pull_request.user.login
 
     if "wip" in pull_request.title.lower() or "work in progress" in pull_request.title.lower() or "do not merge" in pull_request.title.lower():
@@ -50,7 +49,6 @@ def pull_request_opened_event(repo, payload):
 
 def pull_request_edited_event(repo, payload):
     pull_request = repo.get_pull(payload['pull_request']['number'])
-    branch = pull_request.head.ref
     author = pull_request.user.login
 
     if "wip" not in pull_request.title.lower() and "work in progress" not in pull_request.title.lower() and "do not merge" not in pull_request.title.lower():
